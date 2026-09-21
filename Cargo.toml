@@ -2,19 +2,21 @@
 name = "nanokat-signer"
 version = "0.1.0"
 edition = "2021"
+rust-version = "1.98.1"
 description = "NANOKAT creative provenance signer: Ed25519 sidecar signatures for assets"
 license = "MIT"
 
 [dependencies]
-anyhow = "1.0"
-chrono = { version = "0.4", default-features = false, features = ["clock"] }
-clap = { version = "4.5", features = ["derive"] }
-ed25519-dalek = { version = "2.1", features = ["rand_core"] }
-hex = "0.4"
-rand_core = { version = "0.6", features = ["getrandom"] }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-sha2 = "0.10"
+anyhow = "1.0.104"
+chrono = { version = "0.4.45", default-features = false, features = ["clock"] }
+clap = { version = "4.6.7", features = ["derive"] }
+ed25519-dalek = "3.0.0"
+getrandom = "0.4.3"
+hex = "0.4.3"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+sha2 = "0.11.0"
+zeroize = "1.9.0"
 
 [dev-dependencies]
-tempfile = "3"
+tempfile = "3.27.0"

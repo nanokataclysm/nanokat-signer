@@ -40,15 +40,21 @@ that person's identity. Keep private keys outside the repository.
 
 ## Build, test, install
 
+Use Rust **1.98.1 or newer**; 1.98.1 is the validated stable toolchain. The
+checked-in `Cargo.lock` records the resolved dependency versions. Ed25519 Dalek
+3 and SHA-2 0.11 preserve the existing raw key, signature, and sidecar formats.
+New keys use fallible operating-system entropy through `getrandom`; the temporary
+key-generation seed buffer is cleared on drop with `zeroize`.
+
 ```sh
-cargo test                      # cross tests skip if python3+cryptography or signer.py absent
-cargo install --path .          # -> ~/.cargo/bin/nanokat-signer
+cargo test --locked             # cross tests skip if python3+cryptography or signer.py absent
+cargo install --locked --path . # -> ~/.cargo/bin/nanokat-signer
 ```
 
 The cross-implementation tests look for the Python signer at
 `~/dev/nanokat/nkscripts/signer.py`; set `NANOKAT_PY_SIGNER` to select another
-checkout. Use `cargo test -- --nocapture` to see skip messages when a dependency
-is unavailable. With dependencies already cached, `cargo test --offline` runs
+checkout. Use `cargo test --locked -- --nocapture` to see skip messages when a dependency
+is unavailable. With dependencies already cached, `cargo test --locked --offline` runs
 without accessing the package registry. `cargo audit` is an optional separate
 dependency-audit tool.
 

@@ -15,6 +15,7 @@ use anyhow::{bail, Context, Result};
 use ed25519_dalek::{Signature, Signer, SigningKey, Verifier, VerifyingKey};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
+use zeroize::Zeroizing;
 
 pub const SIDECAR_SUFFIX: &str = ".nanokat";
 pub const VERSION: &str = "1.0";
@@ -89,6 +90,14 @@ pub struct KeyPair {
     pub public_hex: String,
 }
 
+fn generate_signing_key(
+    fill: impl FnOnce(&mut [u8]) -> std::result::Result<(), getrandom::Error>,
+) -> Result<SigningKey> {
+    let mut seed = Zeroizing::new([0u8; 32]);
+    fill(&mut *seed).context("obtain operating-system entropy for Ed25519 key")?;
+    Ok(SigningKey::from_bytes(&seed))
+}
+
 /// Load the artisan keypair, generating one if absent (same behaviour as signer.py).
 pub fn load_or_create_keys(key_dir: &Path) -> Result<KeyPair> {
     let priv_path = key_dir.join("artisan.priv");
@@ -97,7 +106,7 @@ pub fn load_or_create_keys(key_dir: &Path) -> Result<KeyPair> {
     if !priv_path.exists() {
         ensure_private_dir(key_dir)?;
         eprintln!("[PROVENANCE] Generating new Ed25519 artisan keypair...");
-        let signing = SigningKey::generate(&mut rand_core::OsRng);
+        let signing = generate_signing_key(getrandom::fill)?;
         write_private(&priv_path, signing.as_bytes())?;
         fs::write(&pub_path, signing.verifying_key().as_bytes())
             .with_context(|| format!("write {}", pub_path.display()))?;
@@ -249,6 +258,16 @@ mod tests {
             payload("a.html", "abc", "2026-01-01T00:00:00.000000Z"),
             b"a.html|abc|2026-01-01T00:00:00.000000Z"
         );
+    }
+
+    #[test]
+    fn key_generation_rejects_failed_entropy_even_after_partial_fill() {
+        let result = generate_signing_key(|seed| {
+            seed[..8].fill(0xa5);
+            Err(getrandom::Error::UNSUPPORTED)
+        });
+        let error = result.expect_err("failed entropy must not produce a signing key");
+        assert!(error.to_string().contains("operating-system entropy"));
     }
 
     #[test]
