@@ -10,12 +10,9 @@ fn bin() -> Command {
 }
 
 fn python_signer() -> Option<PathBuf> {
-    if let Some(p) = std::env::var_os("NANOKAT_PY_SIGNER") {
-        return Some(PathBuf::from(p));
-    }
-    let home = std::env::var_os("HOME")?;
-    let p = PathBuf::from(home).join("dev/nanokat/nkscripts/signer.py");
-    p.is_file().then_some(p)
+    let p = std::env::var_os("NANOKAT_PY_SIGNER")?;
+    let path = PathBuf::from(p);
+    path.is_file().then_some(path)
 }
 
 fn python_has_cryptography() -> bool {

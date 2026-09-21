@@ -47,17 +47,15 @@ New keys use fallible operating-system entropy through `getrandom`; the temporar
 key-generation seed buffer is cleared on drop with `zeroize`.
 
 ```sh
-cargo test --locked             # cross tests skip if python3+cryptography or signer.py absent
+cargo test --locked             # cross tests skip if python3+cryptography or NANOKAT_PY_SIGNER absent
 cargo install --locked --path . # -> ~/.cargo/bin/nanokat-signer
 ```
 
-The cross-implementation tests look for the Python signer at
-`~/dev/nanokat/nkscripts/signer.py`; set `NANOKAT_PY_SIGNER` to select another
-checkout. Use `cargo test --locked -- --nocapture` to see skip messages when a dependency
-is unavailable. With dependencies already cached, `cargo test --locked --offline` runs
-without accessing the package registry. `cargo audit` is an optional separate
-dependency-audit tool.
+Cross-implementation tests can optionally verify against a companion Python signer:
+set `NANOKAT_PY_SIGNER=/path/to/signer.py` to enable them. Use `cargo test --locked -- --nocapture`
+to see skip messages when a dependency is unavailable. With dependencies already cached,
+`cargo test --locked --offline` runs without accessing the package registry.
+`cargo audit` is an optional separate dependency-audit tool.
 
-`infra.dash/app/api/build-portfolio/route.ts` prefers `nanokat-signer` (or
-`$NANOKAT_SIGNER`) and falls back to the Python signer when the binary is not
-on PATH in the companion NANOKAT monorepo.
+Downstream build scripts and portfolio generators prefer `nanokat-signer` (or
+`$NANOKAT_SIGNER` on `PATH`) for fast native signing.
